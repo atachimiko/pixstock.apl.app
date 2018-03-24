@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ElectronNET.API;
+using ElectronNET.API.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using pixstock.apl.app.core;
 
 namespace pixstock.apl.app
 {
     public class Startup
     {
+        private ContentMainWorkflowEventEmiter emiter;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -46,8 +50,19 @@ namespace pixstock.apl.app
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // Open the Electron-Window here
-            Task.Run(async () => await Electron.WindowManager.CreateWindowAsync());
+            var option = new BrowserWindowOptions();
+            option.Width = 1400;
+            option.WebPreferences = new WebPreferences { 
+                WebSecurity = false
+            };
+
+            this.emiter = new ContentMainWorkflowEventEmiter();
+            Task.Run(async () => {
+                // Open the Electron-Window here
+                var browser = await ElectronNET.API.Electron.WindowManager.CreateWindowAsync(option);
+                this.emiter.Initialize();
+            }
+            );
         }
     }
 }
