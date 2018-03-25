@@ -30,11 +30,24 @@ namespace pixstock.apl.app.core
 
                 return JsonConvert.SerializeObject(response);
             });
+
+            Electron.IpcMain.OnSync("EAV_GETCONTENT", (args) =>
+            {
+                Console.WriteLine("[ContentMainWorkflowEventEmiter][EAV_GETCONTENT] : IN " + args);
+                var contentId = long.Parse(args.ToString());
+                var content = new Content { Id = contentId, Name = "Content" + contentId };
+                
+                var response = new ContentDetailResponse();
+                response.Content = content;
+
+                return JsonConvert.SerializeObject(response);
+            });
         }
 
         public void Dispose()
         {
             Electron.IpcMain.RemoveAllListeners("EAV_GETCATEGORY");
+            Electron.IpcMain.RemoveAllListeners("EAV_GETCONTENT");
         }
     }
 }
