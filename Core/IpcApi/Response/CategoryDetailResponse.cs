@@ -1,6 +1,6 @@
 using pixstock.apl.app.Models;
 
-namespace pixstock.apl.app.core.Api.Response
+namespace pixstock.apl.app.core.IpcApi.Response
 {
     public class CategoryDetailResponse
     {
