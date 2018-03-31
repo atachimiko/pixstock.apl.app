@@ -8,12 +8,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NLog;
 using pixstock.apl.app.core;
 
 namespace pixstock.apl.app
 {
     public class Startup
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        
         private ContentMainWorkflowEventEmiter emiter;
 
         public Startup(IConfiguration configuration)
