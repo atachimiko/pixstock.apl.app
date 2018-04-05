@@ -5,6 +5,7 @@ using System.Linq;
 using ElectronNET.API;
 using Newtonsoft.Json;
 using NLog;
+using pixstock.apl.app.core.Dao;
 using pixstock.apl.app.core.IpcApi.Response;
 using pixstock.apl.app.Models;
 using Pixstock.Base.AppIf.Sdk;
@@ -50,59 +51,14 @@ namespace pixstock.apl.app.core
             _logger.Info("IN", args);
             long categoryId = long.Parse(args.ToString());
 
-            // TODO: ↓ DAO化する
-            string requestUrl = BASEURL;
-            var client = new RestClient(requestUrl);
-            var request = new RestRequest("category/{id}", Method.GET);
-            request.AddUrlSegment("id", categoryId);
-
-            var rest_response = client.Execute<ResponseAapi<Category>>(request);
-            if (!rest_response.IsSuccessful)
-            {
-                Console.WriteLine("ErrorCode=" + rest_response.StatusCode);
-                Console.WriteLine("ErrorException=" + rest_response.ErrorException);
-                Console.WriteLine("ErrorMessage=" + rest_response.ErrorMessage);
-                Console.WriteLine("ContentError=" + rest_response.Data.Error);
-                return null;
-            }
-
-            var category = rest_response.Data.Value;
-
-            // リンク情報から、コンテント情報を取得する
-            var contentList = new List<Content>();
-            var link_la = rest_response.Data.Link["la"] as List<object>;
-            foreach (var content_id in link_la.Select(p => (long)p))
-            {
-                //Console.WriteLine("Request LinkType=la = " + category_id + ":" + content_id);
-                var request_link_la = new RestRequest("category/{id}/la/{content_id}", Method.GET);
-                request_link_la.AddUrlSegment("id", categoryId);
-                request_link_la.AddUrlSegment("content_id", content_id);
-
-                var response_link_la = client.Execute<ResponseAapi<Content>>(request_link_la);
-                if (response_link_la.IsSuccessful)
-                {
-                    var content = response_link_la.Data.Value;
-                    _logger.Info("Link[la]のコンテント読み込み=" + content);
-
-                    // サムネイルが存在する場合は、サムネイルのURLを設定
-                    if (!string.IsNullOrEmpty(content.ThumbnailKey))
-                    {
-                        _logger.Info("コンテントサムネイルの読み込み=" + content.ThumbnailKey);
-                        content.ThumbnailImageSrcUrl = BASEURL + "/thumbnail/" + content.ThumbnailKey;
-                    }
-
-                    // コンテントのURLを設定
-                    content.PreviewFileUrl = BASEURL + "/artifact/" + content.Id + "/preview";
-
-                    contentList.Add(content);
-                }
-            }
-            // ↑ここまで。
+            var dao_cat = new CategoryDao();
+            var category = dao_cat.LoadCategory(categoryId);
 
             // IPCレスポンス作成
             var response = new CategoryDetailResponse();
             response.Category = category;
-            response.Content = contentList.ToArray();
+            response.SubCategory = category.LinkSubCategoryList.ToArray();
+            response.Content = category.LinkContentList.ToArray();
             return JsonConvert.SerializeObject(response);
         }
     }
