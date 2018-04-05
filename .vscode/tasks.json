@@ -10,6 +10,16 @@
                 "${workspaceFolder}/pixstock.apl.app.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "pixstock:apl:run",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "electronize",
+                "start"
+            ],
+            "problemMatcher": ""
         }
     ]
 }
