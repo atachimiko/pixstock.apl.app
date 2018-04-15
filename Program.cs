@@ -16,8 +16,6 @@ namespace pixstock.apl.app
     {
         public static void Main(string[] args)
         {
-            var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
-            logger.Debug("init main");
             BuildWebHost(args).Run();
         }
 
