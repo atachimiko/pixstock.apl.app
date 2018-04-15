@@ -17,7 +17,7 @@ namespace pixstock.apl.app.core
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
-        static string BASEURL = "http://localhost:5080/aapi";
+        //static string BASEURL = "http://localhost:5080/aapi";
 
         /// <summary>
         /// 
@@ -25,19 +25,7 @@ namespace pixstock.apl.app.core
         public void Initialize()
         {
             Electron.IpcMain.OnSync("EAV_GETCATEGORY", OnEAV_GETCATEGORY);
-
-            // TODO: ↓別ハンドラ化する
-            Electron.IpcMain.OnSync("EAV_GETCONTENT", (args) =>
-            {
-                Console.WriteLine("[ContentMainWorkflowEventEmiter][EAV_GETCONTENT] : IN " + args);
-                var contentId = long.Parse(args.ToString());
-                var content = new Content { Id = contentId, Name = "Content" + contentId };
-
-                var response = new ContentDetailResponse();
-                response.Content = content;
-
-                return JsonConvert.SerializeObject(response);
-            });
+            Electron.IpcMain.OnSync("EAV_GETCONTENT", OnEAV_GETCONTENT);
         }
 
         public void Dispose()
@@ -48,7 +36,6 @@ namespace pixstock.apl.app.core
 
         private string OnEAV_GETCATEGORY(object args)
         {
-            _logger.Info("IN", args);
             long categoryId = long.Parse(args.ToString());
 
             var dao_cat = new CategoryDao();
@@ -59,6 +46,16 @@ namespace pixstock.apl.app.core
             response.Category = category;
             response.SubCategory = category.LinkSubCategoryList.ToArray();
             response.Content = category.LinkContentList.ToArray();
+            return JsonConvert.SerializeObject(response);
+        }
+
+        private string OnEAV_GETCONTENT(object args)
+        {
+            var contentId = long.Parse(args.ToString());
+            var content = new Content { Id = contentId, Name = "Content" + contentId }; // DEBUG:開発中につきダミーデータを返す
+
+            var response = new ContentDetailResponse();
+            response.Content = content;
             return JsonConvert.SerializeObject(response);
         }
     }

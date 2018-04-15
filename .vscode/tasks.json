@@ -19,7 +19,7 @@
                 "electronize",
                 "start"
             ],
-            "problemMatcher": ""
+            "problemMatcher": "$msCompile"
         }
     ]
 }
