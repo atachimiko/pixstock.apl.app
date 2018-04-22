@@ -9,11 +9,13 @@ using NLog;
 namespace pixstock.apl.app.core.Dao
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class CategoryDao
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+
+        public const int MAXLIMIT = 1000000;
 
         const string BASEURL = "http://localhost:5080/aapi";
 
@@ -29,9 +31,8 @@ namespace pixstock.apl.app.core.Dao
         /// </summary>
         /// <param name="categoryId">カテゴリID</param>
         /// <returns>カテゴリ情報</returns>
-        public Category LoadCategory(long categoryId)
+        public Category LoadCategory(long categoryId, int offsetSubCategory = 0, int limitSubCategory = MAXLIMIT, int offsetContent = 0)
         {
-
             var request = new RestRequest("category/{id}", Method.GET);
             request.AddUrlSegment("id", categoryId);
             request.AddQueryParameter("lla_order", "NAME_ASC");
@@ -47,34 +48,27 @@ namespace pixstock.apl.app.core.Dao
             }
 
             var category = response.Data.Value;
-            category.LinkSubCategoryList = LinkGetSubCategory(categoryId, 0, response);
-            category.LinkContentList = LinkGetContentList(categoryId, 0, response);
+            category.LinkSubCategoryList = LinkGetSubCategory(categoryId, offsetSubCategory, limitSubCategory, response);
+            category.LinkContentList = LinkGetContentList(categoryId, offsetContent, response);
             return category;
         }
 
         private List<Content> LinkGetContentList(long categoryId, long offset, IRestResponse<ResponseAapi<Category>> response)
         {
-
             // リンク情報から、コンテント情報を取得する
             var contentList = new List<Content>();
-            var link_la = response.Data.Link["la"] as List<object>;
-            foreach (var content_id in link_la.Select(p => (long)p))
-            {
-                //Console.WriteLine("Request LinkType=la = " + category_id + ":" + content_id);
-                var request_link_la = new RestRequest("category/{id}/la/{content_id}", Method.GET);
-                request_link_la.AddUrlSegment("id", categoryId);
-                request_link_la.AddUrlSegment("content_id", content_id);
-                request_link_la.AddQueryParameter("offset", offset.ToString());
 
-                var response_link_la = mClient.Execute<ResponseAapi<Content>>(request_link_la);
-                if (response_link_la.IsSuccessful)
+            var request_link_la = new RestRequest("category/{id}/la", Method.GET);
+            request_link_la.AddUrlSegment("id", categoryId);
+
+            var response_link_la = mClient.Execute<ResponseAapi<List<Content>>>(request_link_la);
+            if (response_link_la.IsSuccessful)
+            {
+                foreach (var content in response_link_la.Data.Value)
                 {
-                    //Console.WriteLine("Link[la]のコンテント読み込み=" + response_link_la.Data.Value);
-                    var content = response_link_la.Data.Value;
                     // サムネイルが存在する場合は、サムネイルのURLを設定
                     if (!string.IsNullOrEmpty(content.ThumbnailKey))
                     {
-                        _logger.Info("コンテントサムネイルの読み込み=" + content.ThumbnailKey);
                         content.ThumbnailImageSrcUrl = BASEURL + "/thumbnail/" + content.ThumbnailKey;
                     }
 
@@ -88,23 +82,32 @@ namespace pixstock.apl.app.core.Dao
             return contentList;
         }
 
-        private List<Category> LinkGetSubCategory(long categoryId, long offset, IRestResponse<ResponseAapi<Category>> response)
+        private List<Category> LinkGetSubCategory(long categoryId, int offset, int limit, IRestResponse<ResponseAapi<Category>> response)
         {
             // リンク情報から、カテゴリ情報を取得する
             List<Category> categoryList = new List<Category>();
             var link_la = response.Data.Link["cc"] as List<object>;
-            foreach (var category_id in link_la.Select(p => (long)p))
+            foreach (var category_id in link_la.Skip(offset).Select(p => (long)p).Take(limit))
             {
                 var request_link_la = new RestRequest("category/{id}/cc/{category_id}", Method.GET);
                 request_link_la.AddUrlSegment("id", categoryId);
                 request_link_la.AddUrlSegment("category_id", category_id);
-                request_link_la.AddQueryParameter("offset", offset.ToString());
+                //request_link_la.AddQueryParameter("offset", offset.ToString());
 
                 var response_link_la = mClient.Execute<ResponseAapi<Category>>(request_link_la);
                 if (response_link_la.IsSuccessful)
                 {
-                    //Console.WriteLine("Link[la]のコンテント読み込み=" + response_link_la.Data.Value);
-                    categoryList.Add(response_link_la.Data.Value);
+                    var item = response_link_la.Data.Value;
+                    categoryList.Add(item);
+
+                    if (response_link_la.Data.Link.ContainsKey("cc_available"))
+                    {
+                        var ccAvailable = response_link_la.Data.Link["cc_available"];
+                        if (Boolean.TrueString == ccAvailable.ToString())
+                        {
+                            item.HasLinkSubCategoryFlag = true;
+                        }
+                    }
                 }
             }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ElectronNET.API;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using pixstock.apl.app.core.Dao;
 using pixstock.apl.app.core.IpcApi.Response;
@@ -20,7 +21,7 @@ namespace pixstock.apl.app.core
         //static string BASEURL = "http://localhost:5080/aapi";
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void Initialize()
         {
@@ -36,17 +37,28 @@ namespace pixstock.apl.app.core
 
         private string OnEAV_GETCATEGORY(object args)
         {
-            long categoryId = long.Parse(args.ToString());
+            try
+            {
+                var requestParam = ((JObject)args).ToObject<PARAM_EAV_GETCATEGORY>();
+                if (requestParam.LimitSubCategory == 0)
+                    requestParam.LimitSubCategory = CategoryDao.MAXLIMIT;
+                var dao_cat = new CategoryDao();
+                var category = dao_cat.LoadCategory(requestParam.CategoryId, (int)requestParam.OffsetSubCategory, (int)requestParam.LimitSubCategory);
 
-            var dao_cat = new CategoryDao();
-            var category = dao_cat.LoadCategory(categoryId);
+                // IPCレスポンス作成
+                var response = new CategoryDetailResponse();
+                response.Category = category;
+                response.SubCategory = category.LinkSubCategoryList.ToArray();
+                response.Content = category.LinkContentList.ToArray();
+                return JsonConvert.SerializeObject(response);
+            }
+            catch (Exception expr)
+            {
+                _logger.Error(expr, "OnEAV_GETCATEGORYの例外");
 
-            // IPCレスポンス作成
-            var response = new CategoryDetailResponse();
-            response.Category = category;
-            response.SubCategory = category.LinkSubCategoryList.ToArray();
-            response.Content = category.LinkContentList.ToArray();
-            return JsonConvert.SerializeObject(response);
+                var response = new CategoryDetailResponse();
+                return JsonConvert.SerializeObject(response);
+            }
         }
 
         private string OnEAV_GETCONTENT(object args)
@@ -57,6 +69,17 @@ namespace pixstock.apl.app.core
             var response = new ContentDetailResponse();
             response.Content = content;
             return JsonConvert.SerializeObject(response);
+        }
+
+        private class PARAM_EAV_GETCATEGORY
+        {
+            public int CategoryId { get; set; }
+
+            public int OffsetSubCategory { get; set; }
+
+            public int LimitSubCategory { get; set; }
+
+            public int OffsetContent { get; set; }
         }
     }
 }
