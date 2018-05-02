@@ -8,7 +8,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using NLog.Web;
 
 namespace pixstock.apl.app
 {
@@ -23,7 +22,6 @@ namespace pixstock.apl.app
             WebHost.CreateDefaultBuilder(args)
                 .UseElectron(args)
                 .UseStartup<Startup>()
-                .UseNLog() // NLog: setup NLog for Dependency injection
                 .Build();
     }
 }

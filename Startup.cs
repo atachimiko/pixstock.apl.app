@@ -16,7 +16,7 @@ namespace pixstock.apl.app
     public class Startup
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
-        
+
         private ContentMainWorkflowEventEmiter emiter;
 
         public Startup(IConfiguration configuration)
@@ -38,6 +38,7 @@ namespace pixstock.apl.app
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseBrowserLink();
             }
             else
             {
@@ -53,19 +54,29 @@ namespace pixstock.apl.app
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            var option = new BrowserWindowOptions();
-            option.Width = 1400;
-            option.WebPreferences = new WebPreferences { 
-                WebSecurity = false
-            };
-
             this.emiter = new ContentMainWorkflowEventEmiter();
-            Task.Run(async () => {
-                // Open the Electron-Window here
-                var browser = await ElectronNET.API.Electron.WindowManager.CreateWindowAsync(option);
-                this.emiter.Initialize();
+            if (HybridSupport.IsElectronActive)
+            {
+                ElectronBootstrap();
             }
-            );
+        }
+
+        public async void ElectronBootstrap()
+        {
+            var browserWindow = await Electron.WindowManager.CreateWindowAsync(new BrowserWindowOptions
+            {
+                Width = 1400,
+                Height = 900,
+                WebPreferences = new WebPreferences
+                {
+                    WebSecurity = false
+                },
+                Show = false
+            });
+
+            browserWindow.OnReadyToShow += () => browserWindow.Show();
+            browserWindow.SetTitle("Pixstock Client");
+            this.emiter.Initialize();
         }
     }
 }
