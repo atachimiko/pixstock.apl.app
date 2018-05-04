@@ -63,12 +63,25 @@ namespace pixstock.apl.app.core
 
         private string OnEAV_GETCONTENT(object args)
         {
-            var contentId = long.Parse(args.ToString());
-            var content = new Content { Id = contentId, Name = "Content" + contentId }; // DEBUG:開発中につきダミーデータを返す
+            try
+            {
+                var contentId = long.Parse(args.ToString());
+                var dao_content = new ContentDao();
+                var content = dao_content.LoadContent(contentId);
+                var response = new ContentDetailResponse()
+                {
+                    Content = content,
+                    Category = content.LinkCategory
+                };
+                return JsonConvert.SerializeObject(response);
+            }
+            catch (Exception expr)
+            {
+                _logger.Error(expr, "OnEAV_GETCONTENTの例外");
 
-            var response = new ContentDetailResponse();
-            response.Content = content;
-            return JsonConvert.SerializeObject(response);
+                var response = new ContentDetailResponse();
+                return JsonConvert.SerializeObject(response);
+            }
         }
 
         private class PARAM_EAV_GETCATEGORY

@@ -5,25 +5,23 @@ using Pixstock.Base.AppIf.Sdk;
 using RestSharp;
 using pixstock.apl.app.Models;
 using NLog;
+using Newtonsoft.Json;
+using Pixstock.Common.Model;
 
 namespace pixstock.apl.app.core.Dao
 {
     /// <summary>
     ///
     /// </summary>
-    public class CategoryDao
+    public class CategoryDao : DaoBase
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         public const int MAXLIMIT = 1000000;
 
-        const string BASEURL = "http://localhost:5080/aapi";
-
-        readonly RestClient mClient;
-
         public CategoryDao()
         {
-            mClient = new RestClient(BASEURL);
+            
         }
 
         /// <summary>
@@ -33,27 +31,35 @@ namespace pixstock.apl.app.core.Dao
         /// <returns>カテゴリ情報</returns>
         public Category LoadCategory(long categoryId, int offsetSubCategory = 0, int limitSubCategory = MAXLIMIT, int offsetContent = 0)
         {
-            var request = new RestRequest("category/{id}", Method.GET);
-            request.AddUrlSegment("id", categoryId);
-            request.AddQueryParameter("lla_order", "NAME_ASC");
-
-            var response = mClient.Execute<ResponseAapi<Category>>(request);
-            if (!response.IsSuccessful)
+            try
             {
-                Console.WriteLine("ErrorCode=" + response.StatusCode);
-                Console.WriteLine("ErrorException=" + response.ErrorException);
-                Console.WriteLine("ErrorMessage=" + response.ErrorMessage);
-                Console.WriteLine("ContentError=" + response.Data.Error);
-                return null;
-            }
+                var request = new RestRequest("category/{id}", Method.GET);
+                request.AddUrlSegment("id", categoryId);
+                request.AddQueryParameter("lla_order", "NAME_ASC");
 
-            var category = response.Data.Value;
-            category.LinkSubCategoryList = LinkGetSubCategory(categoryId, offsetSubCategory, limitSubCategory, response);
-            category.LinkContentList = LinkGetContentList(categoryId, offsetContent, response);
-            return category;
+                var response = mClient.Execute<PixstockResponseAapi<Category>>(request);
+                if (!response.IsSuccessful)
+                {
+                    Console.WriteLine("ErrorCode=" + response.StatusCode);
+                    Console.WriteLine("ErrorException=" + response.ErrorException);
+                    Console.WriteLine("ErrorMessage=" + response.ErrorMessage);
+                    Console.WriteLine("ContentError=" + response.Data.Error);
+                    return null;
+                }
+
+                var category = response.Data.Value;
+                category.LinkSubCategoryList = LinkGetSubCategory(categoryId, offsetSubCategory, limitSubCategory, response);
+                category.LinkContentList = LinkGetContentList(categoryId, offsetContent, response);
+                return category;
+            }
+            catch (Exception expr)
+            {
+                _logger.Error(expr, "APIの実行に失敗しました");
+            }
+            return new Category();
         }
 
-        private List<Content> LinkGetContentList(long categoryId, long offset, IRestResponse<ResponseAapi<Category>> response)
+        private List<Content> LinkGetContentList(long categoryId, long offset, IRestResponse<PixstockResponseAapi<Category>> response)
         {
             // リンク情報から、コンテント情報を取得する
             var contentList = new List<Content>();
@@ -82,7 +88,7 @@ namespace pixstock.apl.app.core.Dao
             return contentList;
         }
 
-        private List<Category> LinkGetSubCategory(long categoryId, int offset, int limit, IRestResponse<ResponseAapi<Category>> response)
+        private List<Category> LinkGetSubCategory(long categoryId, int offset, int limit, IRestResponse<PixstockResponseAapi<Category>> response)
         {
             // リンク情報から、カテゴリ情報を取得する
             List<Category> categoryList = new List<Category>();
@@ -94,18 +100,19 @@ namespace pixstock.apl.app.core.Dao
                 request_link_la.AddUrlSegment("category_id", category_id);
                 //request_link_la.AddQueryParameter("offset", offset.ToString());
 
-                var response_link_la = mClient.Execute<ResponseAapi<Category>>(request_link_la);
+                var response_link_la = mClient.Execute<PixstockResponseAapi<Category>>(request_link_la);
                 if (response_link_la.IsSuccessful)
                 {
-                    var item = response_link_la.Data.Value;
-                    categoryList.Add(item);
+                    var linked_category = response_link_la.Data.Value;
+
+                    categoryList.Add(linked_category);
 
                     if (response_link_la.Data.Link.ContainsKey("cc_available"))
                     {
                         var ccAvailable = response_link_la.Data.Link["cc_available"];
                         if (Boolean.TrueString == ccAvailable.ToString())
                         {
-                            item.HasLinkSubCategoryFlag = true;
+                            linked_category.HasLinkSubCategoryFlag = true;
                         }
                     }
                 }

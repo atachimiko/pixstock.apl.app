@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Pixstock.Common.Model;
 
 namespace pixstock.apl.app.Models
@@ -24,7 +25,7 @@ namespace pixstock.apl.app.Models
         public bool ArchiveFlag { get; set; }
 
         public bool ReadableFlag { get; set; }
-        
+
         public int StarRating { get; set; }
 
         /// <summary>
@@ -37,6 +38,16 @@ namespace pixstock.apl.app.Models
         /// 
         /// </summary>
         /// <returns></returns>
-        public string PreviewFileUrl{get;set;}
+        public string PreviewFileUrl { get; set; }
+
+        /// <summary>
+        /// リンクしているカテゴリ情報
+        /// </summary>
+        /// <remarks>
+        /// このプロパティは、フロントエンドへのシリアライズ対象外です。
+        /// </remarks>
+        /// <returns></returns>
+        [JsonIgnore]
+        public Category LinkCategory { get; set; }
     }
 }
