@@ -21,7 +21,7 @@ namespace pixstock.apl.app.core.Dao
 
         public CategoryDao()
         {
-            
+
         }
 
         /// <summary>
@@ -93,32 +93,43 @@ namespace pixstock.apl.app.core.Dao
             // リンク情報から、カテゴリ情報を取得する
             List<Category> categoryList = new List<Category>();
             var link_la = response.Data.Link["cc"] as List<object>;
-            foreach (var category_id in link_la.Skip(offset).Select(p => (long)p).Take(limit))
+            foreach (var linkedCategoryId in link_la.Skip(offset).Select(p => (long)p).Take(limit))
             {
-                var request_link_la = new RestRequest("category/{id}/cc/{category_id}", Method.GET);
-                request_link_la.AddUrlSegment("id", categoryId);
-                request_link_la.AddUrlSegment("category_id", category_id);
-                //request_link_la.AddQueryParameter("offset", offset.ToString());
-
-                var response_link_la = mClient.Execute<PixstockResponseAapi<Category>>(request_link_la);
-                if (response_link_la.IsSuccessful)
-                {
-                    var linked_category = response_link_la.Data.Value;
-
-                    categoryList.Add(linked_category);
-
-                    if (response_link_la.Data.Link.ContainsKey("cc_available"))
-                    {
-                        var ccAvailable = response_link_la.Data.Link["cc_available"];
-                        if (Boolean.TrueString == ccAvailable.ToString())
-                        {
-                            linked_category.HasLinkSubCategoryFlag = true;
-                        }
-                    }
-                }
+                categoryList.Add(LoadLinkedCategory(categoryId, linkedCategoryId));
             }
 
             return categoryList;
+        }
+
+        /// <summary>
+        /// 任意のカテゴリのサブカテゴリ情報を取得します
+        /// </summary>
+        /// <param name="categoryId"></param>
+        /// <param name="linkedCategoryId"></param>
+        /// <returns></returns>
+        public Category LoadLinkedCategory(long categoryId, long linkedCategoryId)
+        {
+            var request_link_la = new RestRequest("category/{id}/cc/{category_id}", Method.GET);
+            request_link_la.AddUrlSegment("id", categoryId);
+            request_link_la.AddUrlSegment("category_id", linkedCategoryId);
+            //request_link_la.AddQueryParameter("offset", offset.ToString());
+
+            var response_link_la = mClient.Execute<PixstockResponseAapi<Category>>(request_link_la);
+            if (!response_link_la.IsSuccessful)
+                throw new ApplicationException("DAOの実行に失敗しました");
+
+            var linked_category = response_link_la.Data.Value;
+
+            if (response_link_la.Data.Link.ContainsKey("cc_available"))
+            {
+                var ccAvailable = response_link_la.Data.Link["cc_available"];
+                if (Boolean.TrueString == ccAvailable.ToString())
+                {
+                    linked_category.HasLinkSubCategoryFlag = true;
+                }
+            }
+
+            return linked_category;
         }
     }
 }

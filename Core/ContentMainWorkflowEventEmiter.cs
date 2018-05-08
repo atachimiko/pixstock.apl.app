@@ -27,12 +27,16 @@ namespace pixstock.apl.app.core
         {
             Electron.IpcMain.OnSync("EAV_GETCATEGORY", OnEAV_GETCATEGORY);
             Electron.IpcMain.OnSync("EAV_GETCONTENT", OnEAV_GETCONTENT);
+            Electron.IpcMain.OnSync("EAV_GETLABELLIST", OnEAV_GETLABELLIST);
+            Electron.IpcMain.OnSync("EAV_GETLABELLINKCATEGORYLIST", OnEAV_GETLABELLINKCATEGORYLIST);
         }
 
         public void Dispose()
         {
             Electron.IpcMain.RemoveAllListeners("EAV_GETCATEGORY");
             Electron.IpcMain.RemoveAllListeners("EAV_GETCONTENT");
+            Electron.IpcMain.RemoveAllListeners("EAV_GETLABELLIST");
+            Electron.IpcMain.RemoveAllListeners("EAV_GETLABELLINKCATEGORYLIST");
         }
 
         private string OnEAV_GETCATEGORY(object args)
@@ -82,6 +86,20 @@ namespace pixstock.apl.app.core
                 var response = new ContentDetailResponse();
                 return JsonConvert.SerializeObject(response);
             }
+        }
+
+        private string OnEAV_GETLABELLIST(object args)
+        {
+            var dao_label = new LabelDao();
+            var labels = dao_label.LoadLabel();
+            return JsonConvert.SerializeObject(labels);
+        }
+
+        private string OnEAV_GETLABELLINKCATEGORYLIST(object args) {
+            var query = args.ToString();
+            var dao_label = new LabelDao();
+            var categoryList = dao_label.LoadLabelLinkCategory(query,0,0);
+            return JsonConvert.SerializeObject(categoryList);
         }
 
         private class PARAM_EAV_GETCATEGORY
