@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using NLog;
+//using NLog;
 using pixstock.apl.app.Models;
 using RestSharp;
 
@@ -7,7 +7,7 @@ namespace pixstock.apl.app.core.Dao
 {
     public class LabelDao : DaoBase
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        //private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// ラベル情報を読み込みます
@@ -33,10 +33,10 @@ namespace pixstock.apl.app.core.Dao
             request.AddUrlSegment("query", query);
             //request.AddQueryParameter("offset", offset.ToString()); 実装したら使用する
 
-            _logger.Info("Execute Request");
+            //_logger.Info("Execute Request");
             var response = mClient.Execute<PixstockResponseAapi<List<Category>>>(request);
 
-            _logger.Info("Execute Respose");
+            //_logger.Info("Execute Respose");
             return response.Data.Value;
         }
     }

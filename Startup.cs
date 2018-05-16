@@ -11,21 +11,18 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NLog;
 using pixstock.apl.app.core;
 using pixstock.apl.app.core.Infra;
 using pixstock.apl.app.core.IpcApi;
-//using SimpleInjector;
-//using SimpleInjector.Integration.AspNetCore.Mvc;
-//using SimpleInjector.Lifestyles;
+using SimpleInjector;
+using SimpleInjector.Integration.AspNetCore.Mvc;
+using SimpleInjector.Lifestyles;
 
 namespace pixstock.apl.app
 {
     public class Startup
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
-
-        //private Container mContainer = new Container();
+        private Container mContainer = new Container();
 
         private ContentMainWorkflowEventEmiter emiter;
 
@@ -40,15 +37,13 @@ namespace pixstock.apl.app
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            //IntegrateSimpleInjector(services);
+            IntegrateSimpleInjector(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            _logger.Info("Execute Configure");
-
-            //InitializeContainer(app);
+            InitializeContainer(app);
 
             if (env.IsDevelopment())
             {
@@ -60,24 +55,22 @@ namespace pixstock.apl.app
                 app.UseExceptionHandler("/Home/Error");
             }
 
-_logger.Info("Execute Configure : 2");
             app.UseStaticFiles();
-_logger.Info("Execute Configure : 3");
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-_logger.Info("Execute Configure : 4");
-            // Ipcマネージャの初期化
-            // var ipcBridge = new IpcBridge(mContainer);
-            // mContainer.RegisterInstance<IRequestHandlerFactory>(ipcBridge.Initialize());
 
-            // mContainer.Verify();
+            // Ipcマネージャの初期化
+            var ipcBridge = new IpcBridge(mContainer);
+            mContainer.RegisterInstance<IRequestHandlerFactory>(ipcBridge.Initialize());
+
+            mContainer.Verify();
 
             //this.emiter = new ContentMainWorkflowEventEmiter();
-            //if (HybridSupport.IsElectronActive)
+            if (HybridSupport.IsElectronActive)
             {
                 ElectronBootstrap();
             }
@@ -85,7 +78,7 @@ _logger.Info("Execute Configure : 4");
 
         public async void ElectronBootstrap()
         {
-            _logger.Info("Execute CreateWindowAsync");
+            Console.WriteLine("Execute CreateWindowAsync");
             var browserWindow = await Electron.WindowManager.CreateWindowAsync(new BrowserWindowOptions
             {
                 Width = 1400,
@@ -97,7 +90,6 @@ _logger.Info("Execute Configure : 4");
                 Show = false
             });
 
-            _logger.Info("Execute Show");
             browserWindow.OnReadyToShow += () => browserWindow.Show();
             browserWindow.SetTitle("Pixstock Client");
             //this.emiter.Initialize();
@@ -105,22 +97,22 @@ _logger.Info("Execute Configure : 4");
 
         private void IntegrateSimpleInjector(IServiceCollection services)
         {
-            // mContainer.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
+            mContainer.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
 
-            // services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            // services.AddSingleton<IControllerActivator>(new SimpleInjectorControllerActivator(mContainer));
-            // services.AddSingleton<IViewComponentActivator>(new SimpleInjectorViewComponentActivator(mContainer));
+            services.AddSingleton<IControllerActivator>(new SimpleInjectorControllerActivator(mContainer));
+            services.AddSingleton<IViewComponentActivator>(new SimpleInjectorViewComponentActivator(mContainer));
 
-            // services.EnableSimpleInjectorCrossWiring(mContainer);
-            // services.UseSimpleInjectorAspNetRequestScoping(mContainer);
+            services.EnableSimpleInjectorCrossWiring(mContainer);
+            services.UseSimpleInjectorAspNetRequestScoping(mContainer);
         }
 
         private void InitializeContainer(IApplicationBuilder app)
         {
             // Add application presentation components:
-            //mContainer.RegisterMvcControllers(app);
-            //mContainer.RegisterMvcViewComponents(app);
+            mContainer.RegisterMvcControllers(app);
+            mContainer.RegisterMvcViewComponents(app);
 
             // Add application services. For instance:
             //container.Register<IUserService, UserService>(Lifestyle.Scoped);

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using NLog;
+//using NLog;
 using pixstock.apl.app.Models;
 using RestSharp;
 
@@ -10,7 +10,7 @@ namespace pixstock.apl.app.core.Dao
     /// </summary>
     public class ContentDao : DaoBase
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        //private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// コンテント情報を読み込みます

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Pixstock.Base.AppIf.Sdk;
 using RestSharp;
 using pixstock.apl.app.Models;
-using NLog;
 using Newtonsoft.Json;
 using Pixstock.Common.Model;
 
@@ -15,8 +14,6 @@ namespace pixstock.apl.app.core.Dao
     /// </summary>
     public class CategoryDao : DaoBase
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
-
         public const int MAXLIMIT = 1000000;
 
         public CategoryDao()
@@ -54,7 +51,7 @@ namespace pixstock.apl.app.core.Dao
             }
             catch (Exception expr)
             {
-                _logger.Error(expr, "APIの実行に失敗しました");
+                //_logger.Error(expr, "APIの実行に失敗しました");
             }
             return new Category();
         }
