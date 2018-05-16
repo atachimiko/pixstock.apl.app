@@ -1,68 +1,74 @@
-// using System.Linq;
-// using ElectronNET.API;
-// using NLog;
-// using pixstock.apl.app.core.Infra;
-// using SimpleInjector;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using ElectronNET.API;
+//using NLog;
+using pixstock.apl.app.core.Infra;
+using SimpleInjector;
 
-// namespace pixstock.apl.app.core.IpcApi
-// {
-//     public class IpcBridge
-//     {
-//         const string IPCEXTENTION_NAMESPACE = "pixstock.apl.app.core.IpcHandler";
+namespace pixstock.apl.app.core.IpcApi
+{
+    public class IpcBridge
+    {
+        const string IPCEXTENTION_NAMESPACE = "pixstock.apl.app.core.IpcHandler";
 
-//         private static Logger _logger = LogManager.GetCurrentClassLogger();
+        //private static Logger _logger = LogManager.GetCurrentClassLogger();
 
-//         readonly Container mContainer;
+        readonly Container mContainer;
 
-//         /// <summary>
-//         ///
-//         /// </summary>
-//         /// <param name="container"></param>
-//         public IpcBridge(Container container)
-//         {
-//             this.mContainer = container;
-//         }
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="container"></param>
+        public IpcBridge(Container container)
+        {
+            this.mContainer = container;
+        }
 
-//         /// <summary>
-//         /// Ipcハンドラの初期化
-//         /// </summary>
-//         public RequestHandlerFactory Initialize()
-//         {
-//             _logger.Info("[IpcBridge][Initialize] - IN");
-//             RequestHandlerFactory requestHandlerFactory = new RequestHandlerFactory(mContainer);
-//             Container localContainer = new Container();
+        /// <summary>
+        /// Ipcハンドラの初期化
+        /// </summary>
+        public RequestHandlerFactory Initialize()
+        {
+            RequestHandlerFactory requestHandlerFactory = new RequestHandlerFactory(mContainer);
+            Container localContainer = new Container();
 
-//             var repositoryAssembly = typeof(IpcBridge).Assembly;
+            var repositoryAssembly = typeof(IpcBridge).Assembly;
 
-//             var registrations =
-//                 from type in repositoryAssembly.GetExportedTypes()
-//                 where type.Namespace == IPCEXTENTION_NAMESPACE
-//                 where type.GetInterfaces().Any()
-//                 select new { Service = type.GetInterfaces().Single(), Implementation = type };
+            // IPCメッセージ処理プラグイン登録
+            // IIpcExtentionインターフェースを実装するクラスのみ登録可能とする
+            var registrations =
+                from type in repositoryAssembly.GetExportedTypes()
+                where type.Namespace == IPCEXTENTION_NAMESPACE
+                where type.GetInterfaces().Contains(typeof(IIpcExtention))
+                select new { Service = type.GetInterfaces().Single(), Implementation = type };
 
-//             foreach (var reg in registrations)
-//             {
-//                 _logger.Info("[IpcBridge][Initialize] Register");
+            List<Type> implementationList = new List<Type>();
+            foreach (var reg in registrations)
+            {
+                Console.WriteLine("[IpcBridge][Initialize] Register");
 
-//                 // Interface => IIpcExtentionクラス
-//                 localContainer.Register(reg.Service, reg.Implementation, Lifestyle.Transient);
-//             }
+                implementationList.Add(reg.Implementation);
+            }
+            localContainer.RegisterCollection<IIpcExtention>(implementationList);
+            Console.WriteLine("[IpcBridge][Initialize] Register Complete");
 
-//             localContainer.Verify();
+            localContainer.Verify();
 
-//             foreach (var ext in localContainer.GetAllInstances<IIpcExtention>())
-//             {
-//                 requestHandlerFactory.Add(ext.IpcMessageName, ext.RequestHandler);
-//                 Electron.IpcMain.On(ext.IpcMessageName, (param) =>
-//                 {
-//                     var factory = mContainer.GetInstance<IRequestHandlerFactory>();
-//                     var handler = factory.CreateNew(ext.IpcMessageName);
+            // IPCメッセージハンドラ登録
+            foreach (var ext in localContainer.GetAllInstances<IIpcExtention>())
+            {
+                requestHandlerFactory.Add(ext.IpcMessageName, ext.RequestHandler);
+                Electron.IpcMain.On(ext.IpcMessageName, (param) =>
+                {
+                    var factory = mContainer.GetInstance<IRequestHandlerFactory>();
+                    var handler = factory.CreateNew(ext.IpcMessageName);
 
-//                     handler.Handle(param);
-//                 });
-//             }
+                    handler.Handle(param);
+                });
+            }
 
-//             return requestHandlerFactory;
-//         }
-//     }
-// }
+            return requestHandlerFactory;
+        }
+    }
+}

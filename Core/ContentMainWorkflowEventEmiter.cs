@@ -5,7 +5,7 @@ using System.Linq;
 using ElectronNET.API;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
+//using NLog;
 using pixstock.apl.app.core.Dao;
 using pixstock.apl.app.core.IpcApi.Response;
 using pixstock.apl.app.Models;
@@ -16,7 +16,7 @@ namespace pixstock.apl.app.core
 {
     public class ContentMainWorkflowEventEmiter
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        //private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         //static string BASEURL = "http://localhost:5080/aapi";
 
@@ -58,7 +58,7 @@ namespace pixstock.apl.app.core
             }
             catch (Exception expr)
             {
-                _logger.Error(expr, "OnEAV_GETCATEGORYの例外");
+                //_logger.Error(expr, "OnEAV_GETCATEGORYの例外");
 
                 var response = new CategoryDetailResponse();
                 return JsonConvert.SerializeObject(response);
@@ -81,7 +81,7 @@ namespace pixstock.apl.app.core
             }
             catch (Exception expr)
             {
-                _logger.Error(expr, "OnEAV_GETCONTENTの例外");
+                //_logger.Error(expr, "OnEAV_GETCONTENTの例外");
 
                 var response = new ContentDetailResponse();
                 return JsonConvert.SerializeObject(response);
