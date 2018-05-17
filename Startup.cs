@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using pixstock.apl.app.core;
 using pixstock.apl.app.core.Infra;
 using pixstock.apl.app.core.IpcApi;
@@ -63,12 +64,6 @@ namespace pixstock.apl.app
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            // Ipcマネージャの初期化
-            var ipcBridge = new IpcBridge(mContainer);
-            mContainer.RegisterInstance<IRequestHandlerFactory>(ipcBridge.Initialize());
-
-            mContainer.Verify();
-
             //this.emiter = new ContentMainWorkflowEventEmiter();
             if (HybridSupport.IsElectronActive)
             {
@@ -98,8 +93,9 @@ namespace pixstock.apl.app
         private void IntegrateSimpleInjector(IServiceCollection services)
         {
             mContainer.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
-
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHostedService, QueuedHostedService>();
+            services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
             services.AddSingleton<IControllerActivator>(new SimpleInjectorControllerActivator(mContainer));
             services.AddSingleton<IViewComponentActivator>(new SimpleInjectorViewComponentActivator(mContainer));
@@ -122,6 +118,17 @@ namespace pixstock.apl.app
 
             // NOTE: Do prevent cross-wired instances as much as possible.
             // See: https://simpleinjector.org/blog/2016/07/
+
+            var queue = app.ApplicationServices.GetService<IBackgroundTaskQueue>(); // ASPNETに登録したサービスのインスタンスを取得する
+            mContainer.RegisterInstance<IBackgroundTaskQueue>(queue); // サービスオブジェクトを、他のオブジェクトにインジェクションするためにDIに登録する
+
+            mContainer.Register<IIntentManager, IntentManager>();
+
+            // Ipcマネージャの初期化
+            var ipcBridge = new IpcBridge(mContainer);
+            mContainer.RegisterInstance<IRequestHandlerFactory>(ipcBridge.Initialize());
+
+            mContainer.Verify();
         }
     }
 }
