@@ -7,7 +7,7 @@ namespace pixstock.apl.app.core.IpcApi.Handler {
     /// </summary>
     public class LogHandler : IRequestHandler
     {
-        public void Handle(object param)
+        public void Handle(IpcMessage param)
         {
             Console.WriteLine("Execute LogHandler.Handle");
         }

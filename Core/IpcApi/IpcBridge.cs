@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ElectronNET.API;
+using Newtonsoft.Json.Linq;
 //using NLog;
 using pixstock.apl.app.core.Infra;
 using SimpleInjector;
@@ -64,7 +65,8 @@ namespace pixstock.apl.app.core.IpcApi
                     var factory = mContainer.GetInstance<IRequestHandlerFactory>();
                     var handler = factory.CreateNew(ext.IpcMessageName);
 
-                    handler.Handle(param);
+                    var requestParam = ((JObject)param).ToObject<IpcMessage>();
+                    handler.Handle(requestParam);
                 });
             }
 

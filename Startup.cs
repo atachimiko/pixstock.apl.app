@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ElectronNET.API;
 using ElectronNET.API.Entities;
+using Hyperion.Pf.Workflow;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -122,11 +123,20 @@ namespace pixstock.apl.app
             var queue = app.ApplicationServices.GetService<IBackgroundTaskQueue>(); // ASPNETに登録したサービスのインスタンスを取得する
             mContainer.RegisterInstance<IBackgroundTaskQueue>(queue); // サービスオブジェクトを、他のオブジェクトにインジェクションするためにDIに登録する
 
-            mContainer.Register<IIntentManager, IntentManager>();
-
             // Ipcマネージャの初期化
             var ipcBridge = new IpcBridge(mContainer);
             mContainer.RegisterInstance<IRequestHandlerFactory>(ipcBridge.Initialize());
+
+            // ServiceDistorionマネージャの初期化
+            var serviceDistoributionManager = new ServiceDistoributionManager(mContainer);
+            serviceDistoributionManager.Initialize();
+            mContainer.RegisterInstance<IServiceDistoributor>(serviceDistoributionManager);
+
+            // Intentマネージャの初期化
+            mContainer.RegisterSingleton<IIntentManager, IntentManager>();
+
+            // Screenマネージャの初期化
+            mContainer.RegisterSingleton<IScreenManager, ScreenManager>();
 
             mContainer.Verify();
         }
