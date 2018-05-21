@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,7 @@ namespace pixstock.apl.app
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMemoryCache();
             services.AddMvc();
             IntegrateSimpleInjector(services);
         }
@@ -122,6 +124,9 @@ namespace pixstock.apl.app
 
             var queue = app.ApplicationServices.GetService<IBackgroundTaskQueue>(); // ASPNETに登録したサービスのインスタンスを取得する
             mContainer.RegisterInstance<IBackgroundTaskQueue>(queue); // サービスオブジェクトを、他のオブジェクトにインジェクションするためにDIに登録する
+
+            var memCache = app.ApplicationServices.GetService<IMemoryCache>(); // ASPNETに登録したサービスのインスタンスを取得する
+            mContainer.RegisterInstance<IMemoryCache>(memCache);
 
             // Ipcマネージャの初期化
             var ipcBridge = new IpcBridge(mContainer);
