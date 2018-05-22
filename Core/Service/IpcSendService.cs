@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using ElectronNET.API;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using pixstock.apl.app.core.Infra;
 using SimpleInjector;
@@ -31,6 +32,32 @@ namespace pixstock.apl.app.core.Service
 
                 var mainWindow = Electron.WindowManager.BrowserWindows.First();
                 Electron.IpcMain.Send(mainWindow, "IPC_UPDATEVIEW", ipcMessage);
+            }
+            else if (message == "UpdateProp")
+            {
+                // UpdateProp
+                //    キャッシュから任意のキーのオブジェクトを取得します。
+                var propertyName = parameter.ToString();
+                var memCache = Container.GetInstance<IMemoryCache>();
+
+                object cachedObject;
+                if (memCache.TryGetValue(propertyName, out cachedObject))
+                {
+                    var ipcMessage = new IpcMessage();
+                    object obj = new
+                    {
+                        propertyName = propertyName,
+                        Value = JsonConvert.SerializeObject(cachedObject)
+                    };
+
+                    ipcMessage.Body = JsonConvert.SerializeObject(obj, Formatting.Indented);
+                    var mainWindow = Electron.WindowManager.BrowserWindows.First();
+                    Electron.IpcMain.Send(mainWindow, "IPC_UPDATEPROP", ipcMessage);
+                }
+                else
+                {
+                    Console.WriteLine("[IpcSendService][Execute] Faile MemCache");
+                }
             }
         }
 
