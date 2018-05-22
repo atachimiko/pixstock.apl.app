@@ -10,7 +10,7 @@ namespace pixstock.apl.app.Workflow
 {
     public class PixstockMainContent : Hyperion.Pf.Workflow.Content, IPixstockContent
     {
-        readonly CategoryTreeTransitionWorkflow mWorkflow = new CategoryTreeTransitionWorkflow();
+        readonly CategoryTreeTransitionWorkflow mWorkflow;
 
         readonly Container mContainer;
 
@@ -21,6 +21,7 @@ namespace pixstock.apl.app.Workflow
         public PixstockMainContent(Container container) : base("PixstockMainContent")
         {
             this.mContainer = container;
+            this.mWorkflow = new CategoryTreeTransitionWorkflow(container);
             mWorkflow.InvokeShowFrame += OnInvokeShowFrame;
             mWorkflow.InvokeHideFrame += OnInvokeHideFrame;
         }
