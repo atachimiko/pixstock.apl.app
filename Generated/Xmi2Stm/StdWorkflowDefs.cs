@@ -17,7 +17,6 @@ public class CLS_HomePageBase : States {}
 public class CLS_ThumbnailListPage : States {}
 public class CLS_ThumbnailListPageBase : States {}
 public class CLS_PreviewPage : States {}
-public class CLS_REQUEST_GetCategory : Events {}
 public class CLS_RESPONSE_GETCATEGORY : Events {}
 public class CLS_RESPONSE_GETCATEGORYCONTENT : Events {}
 public class CLS_CategorySelectBtnClick : Events {}
@@ -29,6 +28,7 @@ public class CLS_TRNS_EXIT : Events {}
 public class CLS_TRNS_ThumbnailListPage : Events {}
 public class CLS_TRNS_PreviewPage : Events {}
 public class CLS_TRNS_BACK : Events {}
+public class CLS_TRNS_DEBUG_BACK : Events {}
 public class CLSINVALID_INVALID : Events {}
 public partial class States : WorkflowStateBase {
 	public static CLS_INIT INIT { get; } = new CLS_INIT();
@@ -57,7 +57,6 @@ public partial class Events : WorkflowEventBase {
 
             return cacheEventsDict[name];
         }
-	public static CLS_REQUEST_GetCategory REQUEST_GetCategory { get; } = new CLS_REQUEST_GetCategory();
 	public static CLS_RESPONSE_GETCATEGORY RESPONSE_GETCATEGORY { get; } = new CLS_RESPONSE_GETCATEGORY();
 	public static CLS_RESPONSE_GETCATEGORYCONTENT RESPONSE_GETCATEGORYCONTENT { get; } = new CLS_RESPONSE_GETCATEGORYCONTENT();
 	public static CLS_CategorySelectBtnClick CategorySelectBtnClick { get; } = new CLS_CategorySelectBtnClick();
@@ -69,6 +68,7 @@ public partial class Events : WorkflowEventBase {
 	public static CLS_TRNS_ThumbnailListPage TRNS_ThumbnailListPage { get; } = new CLS_TRNS_ThumbnailListPage();
 	public static CLS_TRNS_PreviewPage TRNS_PreviewPage { get; } = new CLS_TRNS_PreviewPage();
 	public static CLS_TRNS_BACK TRNS_BACK { get; } = new CLS_TRNS_BACK();
+	public static CLS_TRNS_DEBUG_BACK TRNS_DEBUG_BACK { get; } = new CLS_TRNS_DEBUG_BACK();
 	public static CLSINVALID_INVALID INVALID { get; } = new CLSINVALID_INVALID();
 }
 }

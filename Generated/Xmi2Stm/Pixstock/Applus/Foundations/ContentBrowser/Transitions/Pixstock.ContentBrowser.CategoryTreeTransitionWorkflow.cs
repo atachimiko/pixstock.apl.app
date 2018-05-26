@@ -34,6 +34,9 @@ In(States.INIT)
 In(States.ROOT)
 .On(Events.TRNS_EXIT)
 .Goto(States.INIT);
+In(States.ROOT)
+.On(Events.TRNS_DEBUG_BACK)
+.Goto(States.ROOT);
 In(States.HomePageBase)
 .On(Events.TRNS_ThumbnailListPage)
 .Goto(States.ThumbnailListPage);
@@ -46,9 +49,6 @@ In(States.ThumbnailListPageBase)
 In(States.PreviewPage)
 .On(Events.TRNS_BACK)
 .Goto(States.ThumbnailListPageBase);
-In(States.ROOT)
-.On(Events.REQUEST_GetCategory)
-.Execute<object>(REQUEST_GetCategory);
 In(States.ROOT)
 .On(Events.RESPONSE_GETCATEGORY)
 .Execute<object>(RESPONSE_GETCATEGORY);
@@ -84,11 +84,6 @@ In(States.PreviewPage)
 .On(Events.RESPONSE_GETCONTENT)
 .Execute<object>(RESPONSE_GETCONTENT);
 	Initialize(States.INIT);
-}
-public virtual async Task REQUEST_GetCategory(object param) {
-	Events.REQUEST_GetCategory.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
-	await OnREQUEST_GetCategory(param);
-	Events.REQUEST_GetCategory.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
 }
 public virtual async Task RESPONSE_GETCATEGORY(object param) {
 	Events.RESPONSE_GETCATEGORY.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
