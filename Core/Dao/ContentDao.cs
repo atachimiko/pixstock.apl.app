@@ -25,6 +25,12 @@ namespace pixstock.apl.app.core.Dao
             var response = mClient.Execute<PixstockResponseAapi<Content>>(request);
 
             var content = response.Data.Value;
+            // サムネイルが存在する場合は、サムネイルのURLを設定
+            if (!string.IsNullOrEmpty(content.ThumbnailKey))
+            {
+                content.ThumbnailImageSrcUrl = BASEURL + "/thumbnail/" + content.ThumbnailKey;
+            }
+            content.PreviewFileUrl = BASEURL + "/artifact/" + content.Id + "/preview";
             content.LinkCategory = LinkGetCategory(content.Id, response.Data.Link);
             return content;
         }

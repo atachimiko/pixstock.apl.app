@@ -40,8 +40,6 @@ namespace pixstock.apl.app.core
 
         public void ShowScreen(string screenName)
         {
-            // TODO: スタックへの排他制御
-
             // スタックに画面情報を追加する
             mScreenTransitionEventList.Add(new ScreenEventItem
             {
@@ -52,8 +50,6 @@ namespace pixstock.apl.app.core
 
         public void HideScreen(string screenName)
         {
-            // TODO: スタックへの排他制御
-
             mScreenTransitionEventList.Add(new ScreenEventItem
             {
                 ScreenName = screenName,
@@ -61,10 +57,8 @@ namespace pixstock.apl.app.core
             });
         }
 
-        public void UpdateScreenTransitionView()
+        public void UpdateScreenTransitionView(object param)
         {
-            // TODO: スタックへの排他制御
-
             Console.WriteLine("[ScreenManager][UpdateScreenTransitionView] - IN");
             Console.WriteLine("   Count=" + mScreenTransitionEventList.Count);
             var viewEventList = new List<UpdateViewIntentParameter>();
@@ -153,7 +147,15 @@ namespace pixstock.apl.app.core
                 }
             }
 
-            mIntentManger.AddIntent(ServiceType.FrontendIpc, "UpdateView", viewEventList);
+            // 画面表示の切り替えがある場合のみ、UpdateViewメッセージを送信する
+            if (viewEventList.Count > 0)
+            {
+                mIntentManger.AddIntent(ServiceType.FrontendIpc, "UpdateView", new UpdateViewResponse
+                {
+                    ViewEventList = viewEventList,
+                    Parameter = param
+                });
+            }
         }
 
         public class ScreenItem
@@ -166,6 +168,13 @@ namespace pixstock.apl.app.core
             public string ScreenName;
 
             public bool PushEventFlag;
+        }
+
+        public class UpdateViewResponse
+        {
+            public List<UpdateViewIntentParameter> ViewEventList;
+
+            public object Parameter;
         }
     }
 

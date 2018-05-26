@@ -37,12 +37,24 @@ In(States.ROOT)
 In(States.HomePageBase)
 .On(Events.TRNS_ThumbnailListPage)
 .Goto(States.ThumbnailListPage);
-In(States.ThumbnailListPage)
-.On(Events.TRNS_BACK)
-.Goto(States.HomePage);
 In(States.ThumbnailListPageBase)
 .On(Events.TRNS_PreviewPage)
 .Goto(States.PreviewPage);
+In(States.ThumbnailListPageBase)
+.On(Events.TRNS_BACK)
+.Goto(States.HomePage);
+In(States.PreviewPage)
+.On(Events.TRNS_BACK)
+.Goto(States.ThumbnailListPageBase);
+In(States.ROOT)
+.On(Events.REQUEST_GetCategory)
+.Execute<object>(REQUEST_GetCategory);
+In(States.ROOT)
+.On(Events.RESPONSE_GETCATEGORY)
+.Execute<object>(RESPONSE_GETCATEGORY);
+In(States.ROOT)
+.On(Events.RESPONSE_GETCATEGORYCONTENT)
+.Execute<object>(RESPONSE_GETCATEGORYCONTENT);
 In(States.HomePage)
 .ExecuteOnEntry(__FTC_Event_HomePage_Entry);
 In(States.HomePage)
@@ -55,11 +67,38 @@ In(States.ThumbnailListPage)
 .ExecuteOnEntry(ThumbnailListPage_Entry);
 In(States.ThumbnailListPage)
 .ExecuteOnExit(ThumbnailListPage_Exit);
+In(States.ThumbnailListPageBase)
+.On(Events.CategorySelectBtnClick)
+.Execute<object>(CategorySelectBtnClick);
+In(States.ThumbnailListPageBase)
+.On(Events.ACT_ContinueCategoryList)
+.Execute<object>(ACT_ContinueCategoryList);
 In(States.PreviewPage)
 .ExecuteOnEntry(__FTC_Event_PreviewPage_Entry);
 In(States.PreviewPage)
 .ExecuteOnExit(__FTC_Event_PreviewPage_Exit);
+In(States.PreviewPage)
+.On(Events.ACT_DISPLAY_PREVIEWCURRENTLIST)
+.Execute<object>(ACT_DISPLAY_PREVIEWCURRENTLIST);
+In(States.PreviewPage)
+.On(Events.RESPONSE_GETCONTENT)
+.Execute<object>(RESPONSE_GETCONTENT);
 	Initialize(States.INIT);
+}
+public virtual async Task REQUEST_GetCategory(object param) {
+	Events.REQUEST_GetCategory.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnREQUEST_GetCategory(param);
+	Events.REQUEST_GetCategory.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
+}
+public virtual async Task RESPONSE_GETCATEGORY(object param) {
+	Events.RESPONSE_GETCATEGORY.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnRESPONSE_GETCATEGORY(param);
+	Events.RESPONSE_GETCATEGORY.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
+}
+public virtual async Task RESPONSE_GETCATEGORYCONTENT(object param) {
+	Events.RESPONSE_GETCATEGORYCONTENT.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnRESPONSE_GETCATEGORYCONTENT(param);
+	Events.RESPONSE_GETCATEGORYCONTENT.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
 }
 public virtual async Task __FTC_Event_HomePage_Entry() {
 ICollection<int> ribbonMenuEventId = new List<int>{  };
@@ -85,6 +124,16 @@ public virtual async Task ThumbnailListPage_Exit() {
 ICollection<int> ribbonMenuEventId = new List<int>{  };
 	HideFrame("ThumbnailListPage", ribbonMenuEventId);
 }
+public virtual async Task CategorySelectBtnClick(object param) {
+	Events.CategorySelectBtnClick.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnCategorySelectBtnClick(param);
+	Events.CategorySelectBtnClick.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
+}
+public virtual async Task ACT_ContinueCategoryList(object param) {
+	Events.ACT_ContinueCategoryList.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnACT_ContinueCategoryList(param);
+	Events.ACT_ContinueCategoryList.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
+}
 public virtual async Task __FTC_Event_PreviewPage_Entry() {
 ICollection<int> ribbonMenuEventId = new List<int>{  };
 	ShowFrame("PreviewPage",ribbonMenuEventId);
@@ -92,6 +141,16 @@ ICollection<int> ribbonMenuEventId = new List<int>{  };
 public virtual async Task __FTC_Event_PreviewPage_Exit() {
 ICollection<int> ribbonMenuEventId = new List<int>{  };
 	HideFrame("PreviewPage", ribbonMenuEventId);
+}
+public virtual async Task ACT_DISPLAY_PREVIEWCURRENTLIST(object param) {
+	Events.ACT_DISPLAY_PREVIEWCURRENTLIST.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnACT_DISPLAY_PREVIEWCURRENTLIST(param);
+	Events.ACT_DISPLAY_PREVIEWCURRENTLIST.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
+}
+public virtual async Task RESPONSE_GETCONTENT(object param) {
+	Events.RESPONSE_GETCONTENT.FireInvokeWorkflowEvent(new WorkflowMessageEventArgs(param));
+	await OnRESPONSE_GETCONTENT(param);
+	Events.RESPONSE_GETCONTENT.FireCallbackWorkflowEvent(new WorkflowMessageEventArgs(param));
 }
 }
 }

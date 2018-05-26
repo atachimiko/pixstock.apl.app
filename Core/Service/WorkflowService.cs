@@ -31,6 +31,8 @@ namespace pixstock.apl.app.core.Service
 
         public void Execute(string intentMessage, object parameter)
         {
+            var screenManager = Container.GetInstance<IScreenManager>();
+
             Console.WriteLine("[WorkflowService][Execute]");
             Console.WriteLine(" intentMessage = " + intentMessage);
             Console.WriteLine(" parameter = " + parameter);
@@ -43,8 +45,7 @@ namespace pixstock.apl.app.core.Service
                     {
                         ((IPixstockContent)content).FireWorkflowEvent(Container, intentMessage, parameter);
 
-                        var screenManager = Container.GetInstance<IScreenManager>();
-                        screenManager.UpdateScreenTransitionView();
+                        screenManager.UpdateScreenTransitionView(parameter);
                     }
                 }
             }

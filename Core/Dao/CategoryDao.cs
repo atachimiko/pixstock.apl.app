@@ -25,9 +25,13 @@ namespace pixstock.apl.app.core.Dao
         /// カテゴリ情報を読み込みます
         /// </summary>
         /// <param name="categoryId">カテゴリID</param>
+        /// <param name="offsetSubCategory">子階層カテゴリリストの取得開始位置</param>
+        /// <param name="limitSubCategory">子階層カテゴリリストの取得最大数</param>
         /// <returns>カテゴリ情報</returns>
         public Category LoadCategory(long categoryId, int offsetSubCategory = 0, int limitSubCategory = MAXLIMIT, int offsetContent = 0)
         {
+            if (limitSubCategory == -1) limitSubCategory = MAXLIMIT;
+
             try
             {
                 var request = new RestRequest("category/{id}", Method.GET);

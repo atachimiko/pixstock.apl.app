@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using pixstock.apl.app.core.Infra;
 using SimpleInjector;
+using static pixstock.apl.app.core.ScreenManager;
 
 namespace pixstock.apl.app.core.Service
 {
@@ -22,10 +23,12 @@ namespace pixstock.apl.app.core.Service
             if (message == "UpdateView")
             {
                 // IPCメッセージを作成する
+                var messageparameter = parameter as UpdateViewResponse;
                 var ipcMessage = new IpcMessage();
                 object obj = new
                 {
-                    UpdateList = parameter
+                    UpdateList = messageparameter.ViewEventList,
+                    Parameter = messageparameter.Parameter
                 };
                 ipcMessage.Body = JsonConvert.SerializeObject(obj, Formatting.Indented);
                 Console.WriteLine("    Body(JSON)=" + ipcMessage.Body);
@@ -46,7 +49,7 @@ namespace pixstock.apl.app.core.Service
                     var ipcMessage = new IpcMessage();
                     object obj = new
                     {
-                        propertyName = propertyName,
+                        PropertyName = propertyName,
                         Value = JsonConvert.SerializeObject(cachedObject)
                     };
 

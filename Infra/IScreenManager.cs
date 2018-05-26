@@ -9,6 +9,6 @@ namespace pixstock.apl.app.core.Infra
         /// <summary>
         /// ビュー層に画面遷移メッセージを送信する
         /// </summary>
-        void UpdateScreenTransitionView();
+        void UpdateScreenTransitionView(object param);
     }
 }
